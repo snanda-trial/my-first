@@ -1,0 +1,50 @@
+* In Sprint not assigned
+http://gitlab.gfo.intranet/groups/gfotp/-/issues?scope=all&state=opened&iteration_id=Current&assignee_id=None
+* In sprint no weight
+http://gitlab.gfo.intranet/groups/gfotp/-/issues?scope=all&state=opened&iteration_id=Current&weight=None
+* Assigned but not in Sprint
+http://gitlab.gfo.intranet/groups/gfotp/-/issues?scope=all&state=opened&assignee_id=Any&not[iteration_id]=Current&not[label_name][]=Waiting%20for%20Merge
+* in sprint but no EPIC
+http://gitlab.gfo.intranet/groups/gfotp/-/issues?scope=all&state=opened&epic_id=None&iteration_id=Current
+--http://gitlab.gfo.intranet/gfotp/smarts/-/issues/26
+* assigned but no epic
+http://gitlab.gfo.intranet/groups/gfotp/-/issues?scope=all&state=opened&epic_id=None&assignee_id=Any
+----http://gitlab.gfo.intranet/gfotp/smarts/-/issues/26
+*doing but not in sprint
+http://gitlab.gfo.intranet/groups/gfotp/-/issues?scope=all&state=opened&label_name[]=Doing&not[iteration_id]=Current&not[label_name][]=Waiting%20for%20Merge
+
+*tickets in sprint w/o estimate
+http://gitlab.gfo.intranet/gfotp/mdd/-/issues/31
+
+
+
+
+
+Epics not labelled
+http://gitlab.gfo.intranet/groups/gfotp/-/epics/274 ---- http://openproject.lkf.hk.intranet/projects/product-backlog/work_packages/3506/activity
+http://gitlab.gfo.intranet/groups/gfotp/-/epics/278
+http://gitlab.gfo.intranet/groups/gfotp/-/epics/276
+
+Issues not prioritised and not in sprint because Epics not labelled
+http://gitlab.gfo.intranet/gfotp/application-server/-/issues/15
+http://gitlab.gfo.intranet/gfotp/alpha_exchange/-/issues/644     ---- tbd
+http://gitlab.gfo.intranet/gfotp/alpha_exchange/-/issues/596     ---- tbd
+http://gitlab.gfo.intranet/gfotp/alpha_exchange/-/issues/561     ---- tbd
+
+||Alerts||Link||Instances||Details||Actions||
+|In Sprint not assigned|http://gitlab.gfo.intranet/groups/gfotp/-/issues?scope=all&state=opened&iteration_id=Current&assignee_id=None|none|||
+|In sprint no weight|Manual|4|http://gitlab.gfo.intranet/gfotp/mdp/-/issues/20|Old issue|
+| | | |http://gitlab.gfo.intranet/gfotp/application-server/-/issues/38|No estimate only spent 1 hour|
+| | | |http://gitlab.gfo.intranet/gfotp/data-store/-/issues/22|Old issue|
+| | | |http://gitlab.gfo.intranet/gfotp/devops/-/issues/8|No Epics|
+|Assigned but not in Sprint|http://gitlab.gfo.intranet/groups/gfotp/-/issues?scope=all&state=opened&assignee_id=Any&not[iteration_id]=Current&not[label_name][]=Waiting%20for%20Merge|5|All exchange gui client issues|Need to guide Leon|
+|In sprint but no EPIC|http://gitlab.gfo.intranet/groups/gfotp/-/issues?scope=all&state=opened&epic_id=None&iteration_id=Current|none|||
+|Assigned but no epic|http://gitlab.gfo.intranet/groups/gfotp/-/issues?scope=all&state=opened&epic_id=None&assignee_id=Any|6|http://gitlab.gfo.intranet/gfotp/devops/-/issues/8|Followed up|
+| | | |All exchange gui client issues|Need to guide Leon|
+|Doing but not in sprint|http://gitlab.gfo.intranet/groups/gfotp/-/issues?scope=all&state=opened&label_name[]=Doing&not[iteration_id]=Current&not[label_name][]=Waiting%20for%20Merge|none|exchange gui client issues|Need to guide Leon|
+|Tickets in sprint w/o estimate|Manual|1|http://gitlab.gfo.intranet/gfotp/application-server/-/issues/38|Only 1 hr Spent, hence ignored it.|
+|Closed/merged w/o spent|Manual|5|http://gitlab.gfo.intranet/gfotp/devops/-/issues/6|Spent in another sprint|
+| | | |http://gitlab.gfo.intranet/gfotp/libbmf/-/issues/15|Follow up|
+| | | |http://gitlab.gfo.intranet/gfotp/mdd/-/issues/27|Follow up|
+| | | |http://gitlab.gfo.intranet/gfotp/libimp/-/issues/20|Follow up|
+| | | |http://gitlab.gfo.intranet/gfotp/gitlab-ci/-/issues/6|Follow up|

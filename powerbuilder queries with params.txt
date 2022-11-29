@@ -1,0 +1,156 @@
+https://www.howtoexcel.org/how-to-parameterize-your-power-query/
+let Parameter=(TableName,RowNumber) =>
+ 
+let
+	Source = Excel.CurrentWorkbook(){[Name=TableName]}[Content],
+	value = Source{RowNumber-1}[Value]
+in
+	value
+
+in Parameter
+================No Estimate===============
+let
+    Source = Excel.CurrentWorkbook(){[Name="gitlab_all"]}[Content],
+    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Milestone", type text}, {"Iteration", type text}, {"Epic", type text}, {"Project", type text}, {"Alpha", type text}, {"Issue ID", Int64.Type}, {"Title", type text}, {"Assignee", type text}, {"Created", type datetime}, {"Closed", type datetime}, {"Closed by", type text}, {"Time estimated (hours)", Int64.Type}, {"Time spent (hours)", Int64.Type}, {"Weight", Int64.Type}, {"Labels", type text}, {"State", type text}, {"Weight-averaged Weight", type number}, {"Issue URL", type text}, {"Epic URL", type text}}),
+    #"Filtered Rows" = Table.SelectRows(#"Changed Type", each ([Project] <> "sprint-staging") and ([#"Time estimated (hours)"] = 0) and (not Text.Contains([Labels], "Anchor") and [Labels] <> "Duplicate::No Dev")),
+    #"Filtered Rows1" = Table.SelectRows(#"Filtered Rows", each [Iteration] =fParameters("Parameters",3))
+in
+    #"Filtered Rows1"
+=============No Wt.===================
+let
+    Source = Excel.CurrentWorkbook(){[Name="gitlab_all"]}[Content],
+    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Milestone", type text}, {"Iteration", type text}, {"Epic", type text}, {"Project", type text}, {"Alpha", type text}, {"Issue ID", Int64.Type}, {"Title", type text}, {"Assignee", type text}, {"Created", type datetime}, {"Closed", type datetime}, {"Closed by", type text}, {"Time estimated (hours)", Int64.Type}, {"Time spent (hours)", Int64.Type}, {"Weight", Int64.Type}, {"Labels", type text}, {"State", type text}, {"Weight-averaged Weight", type number}, {"Issue URL", type text}, {"Epic URL", type text}}),
+    #"Filtered Rows" = Table.SelectRows(#"Changed Type", each ([Iteration] = fParameters("Parameters",3)) and ([#"Weight-averaged Weight"] = 0) and ([Project] <> "sprint-staging") and  not Text.Contains([Labels], "Anchor") and ([Labels] <> "Duplicate::No Dev") )
+in
+    #"Filtered Rows"    
+==========No Spent======================
+let
+    Source = Excel.CurrentWorkbook(){[Name="gitlab_all"]}[Content],
+    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Milestone", type text}, {"Iteration", type text}, {"Epic", type text}, {"Project", type text}, {"Alpha", type text}, {"Issue ID", Int64.Type}, {"Title", type text}, {"Assignee", type text}, {"Created", type datetime}, {"Closed", type datetime}, {"Closed by", type text}, {"Time estimated (hours)", Int64.Type}, {"Time spent (hours)", Int64.Type}, {"Weight", Int64.Type}, {"Labels", type text}, {"State", type text}, {"Weight-averaged Weight", type number}, {"Issue URL", type text}, {"Epic URL", type text}}),
+    #"Filtered Rows" = Table.SelectRows(#"Changed Type", each ([Iteration] = fParameters("Parameters",3)) and ([Project] <> "sprint-staging") and ([#"Time spent (hours)"] = 0) and ([Labels] <> "Anchor")),
+    #"Filtered Rows1" = Table.SelectRows(#"Filtered Rows", each not Text.Contains([Labels], "Next Sprint") or not Text.Contains([Labels], "Duplicate::No Dev")),
+    #"Filtered Rows2" = Table.SelectRows(#"Filtered Rows1", each ([Labels] = "Stage::Doing" or [Labels] = "Stage::Merge Request"))
+in
+    #"Filtered Rows2"
+==========op All======================
+let
+    Source = Csv.Document(File.Contents(fParameters("Parameters",1)&"\"&fParameters("Parameters",6)),[Delimiter=",", Columns=11, Encoding=1252, QuoteStyle=QuoteStyle.None]),
+    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"id", Int64.Type}, {"Parent", type text}, {"Status", type text}, {"Subject", type text}, {"Type", type text}, {"Category", type text}, {"Version", type text}, {"Estimated time", type text}, {"Spent time", type number}, {"gitlab_hook", type text}, {"Description", type text}}),
+    #"Changed Type1" = Table.TransformColumnTypes(#"Changed Type",{{"Estimated time", Int64.Type}})
+in
+    #"Changed Type1"    
+==========gitlab All======================
+let
+    Source = Csv.Document(File.Contents(fParameters("Parameters",1)&"\"&fParameters("Parameters",2)),[Delimiter="|", Columns=19, Encoding=1252, QuoteStyle=QuoteStyle.None]),
+    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"Milestone", type text}, {"Iteration", type text}, {"Epic", type text}, {"Project", type text}, {"Alpha", type text}, {"Issue ID", Int64.Type}, {"Title", type text}, {"Assignee", type text}, {"Created", type datetime}, {"Closed", type datetime}, {"Closed by", type text}, {"Time estimated (hours)", Int64.Type}, {"Time spent (hours)", Int64.Type}, {"Weight", Int64.Type}, {"Labels", type text}, {"State", type text}, {"Weight-averaged Weight", type number}, {"Issue URL", type text}, {"Epic URL", type text}}),
+    #"Rounded Off" = Table.TransformColumns(#"Changed Type",{{"Weight-averaged Weight", each Number.Round(_, 2), type number}})
+in
+    #"Rounded Off"
+==============spill over tickets===========
+let
+    Source = Excel.CurrentWorkbook(){[Name="gitlab_all"]}[Content],
+    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Milestone", type text}, {"Iteration", type text}, {"Epic", type text}, {"Project", type text}, {"Alpha", type text}, {"Issue ID", Int64.Type}, {"Title", type text}, {"Assignee", type text}, {"Created", type datetime}, {"Closed", type datetime}, {"Closed by", type text}, {"Time estimated (hours)", Int64.Type}, {"Time spent (hours)", Int64.Type}, {"Weight", Int64.Type}, {"Labels", type text}, {"State", type text}, {"Weight-averaged Weight", type number}, {"Issue URL", type text}, {"Epic URL", type text}}),
+    #"Filtered Rows" = Table.SelectRows(#"Changed Type", each ([Iteration] = fParameters("Parameters",3)) and ([Project] <> "sprint-staging") and ([State] = "opened")),
+    #"Filtered Rows1" = Table.SelectRows(#"Filtered Rows", each not Text.Contains([Labels], "Stage::Merge Request")),
+    #"Filtered Rows2" = Table.SelectRows(#"Filtered Rows1", each ([Labels] <> "Anchor"))
+in
+    #"Filtered Rows2"
+===================total spent in sprint==================================
+let
+    Source = Json.Document(File.Contents(fParameters("Parameters",1)&"\"&fParameters("Parameters",5))),
+    data = Source[data],
+    group = data[group],
+    timelogs = group[timelogs],
+    edges1 = timelogs[edges],
+    #"Converted to Table" = Table.FromList(edges1, Splitter.SplitByNothing(), null, null, ExtraValues.Ignore),
+    #"Expanded Column1" = Table.ExpandRecordColumn(#"Converted to Table", "Column1", {"node"}, {"node"}),
+    #"Expanded node" = Table.ExpandRecordColumn(#"Expanded Column1", "node", {"spentAt", "timeSpent", "user", "issue"}, {"spentAt", "timeSpent", "user", "issue"}),
+    #"Expanded user" = Table.ExpandRecordColumn(#"Expanded node", "user", {"name"}, {"name"}),
+    #"Expanded issue" = Table.ExpandRecordColumn(#"Expanded user", "issue", {"webUrl", "iid", "title", "weight", "iteration", "epic", "state", "totalTimeSpent", "labels"}, {"webUrl", "iid", "title", "weight", "iteration", "epic", "state", "totalTimeSpent", "labels"}),
+    #"Expanded iteration" = Table.ExpandRecordColumn(#"Expanded issue", "iteration", {"title"}, {"title.1"}),
+    #"Expanded epic1" = Table.ExpandRecordColumn(#"Expanded iteration", "epic", {"title", "webUrl", "labels"}, {"epic.title", "epic.webUrl", "epic.labels"}),
+    #"Expanded epic.labels" = Table.ExpandRecordColumn(#"Expanded epic1", "epic.labels", {"edges"}, {"epic.labels.edges"}),
+    #"Expanded epic.labels.edges" = Table.ExpandListColumn(#"Expanded epic.labels", "epic.labels.edges"),
+    #"Expanded epic.labels.edges1" = Table.ExpandRecordColumn(#"Expanded epic.labels.edges", "epic.labels.edges", {"node"}, {"epic.labels.edges.node"}),
+    #"Expanded epic.labels.edges.node" = Table.ExpandRecordColumn(#"Expanded epic.labels.edges1", "epic.labels.edges.node", {"title"}, {"epic.labels.edges.node.title"}),
+    #"Expanded labels1" = Table.ExpandRecordColumn(#"Expanded epic.labels.edges.node", "labels", {"edges"}, {"edges"}),
+    #"Expanded edges2" = Table.ExpandListColumn(#"Expanded labels1", "edges"),
+    #"Expanded edges3" = Table.ExpandRecordColumn(#"Expanded edges2", "edges", {"node"}, {"node"}),
+    #"Expanded node2" = Table.ExpandRecordColumn(#"Expanded edges3", "node", {"title"}, {"title.2"}),
+    #"Renamed Columns4" = Table.RenameColumns(#"Expanded node2",{{"title.2", "label"}, {"epic.labels.edges.node.title", "epic_label"}, {"epic.webUrl", "EpicURL"}, {"epic.title", "Epic"}, {"title.1", "Iteration"}}),
+    #"Sorted Rows" = Table.Sort(#"Renamed Columns4",{{"label", Order.Descending}, {"epic_label", Order.Ascending}}),
+    #"Removed Duplicates" = Table.Distinct(#"Sorted Rows", {"totalTimeSpent", "state", "Epic", "Iteration", "weight", "title", "iid", "webUrl", "name", "timeSpent", "spentAt"}),
+    #"Divided Column" = Table.TransformColumns(#"Removed Duplicates", {{"totalTimeSpent", each _ / 3600, type number}}),
+    #"Rounded Off" = Table.TransformColumns(#"Divided Column",{{"totalTimeSpent", each Number.Round(_, 1), type number}}),
+    #"Split Column by Positions" = Table.SplitColumn(#"Rounded Off", "spentAt", Splitter.SplitTextByPositions({0, 10}), {"spentAt.1", "spentAt.2"}),
+    #"Changed Type" = Table.TransformColumnTypes(#"Split Column by Positions",{{"spentAt.1", type date}, {"spentAt.2", type text}}),
+    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"spentAt.2"}),
+    #"Renamed Columns1" = Table.RenameColumns(#"Removed Columns",{{"spentAt.1", "spentAt"}}),
+    #"Divided Column2" = Table.TransformColumns(#"Renamed Columns1", {{"timeSpent", each _ / 3600, type number}}),
+    #"Rounded Off1" = Table.TransformColumns(#"Divided Column2",{{"timeSpent", each Number.Round(_, 1), type number}}),
+    #"Sorted Rows1" = Table.Sort(#"Rounded Off1",{{"webUrl", Order.Ascending}}),
+    #"Reversed Rows" = Table.ReverseRows(#"Sorted Rows1"),
+    #"Reordered Columns" = Table.ReorderColumns(#"Reversed Rows",{"webUrl", "title", "iid", "timeSpent", "spentAt", "name", "weight"}),
+    #"Renamed Columns2" = Table.RenameColumns(#"Reordered Columns",{{"timeSpent", "HrsSpent"}}),
+    #"Reordered Columns1" = Table.ReorderColumns(#"Renamed Columns2",{"webUrl", "title", "iid", "HrsSpent", "weight", "spentAt", "name"}),
+    #"Grouped Rows" = Table.Group(#"Reordered Columns1", {"webUrl", "title", "iid", "Iteration", "Epic", "EpicURL", "state", "totalTimeSpent", "name","label"}, {{"Hrs Spent in Sprint", each List.Sum([HrsSpent]), type number}, {"Wt Spent in Sprint", each List.Sum([weight]), type nullable number}, {"Latest Date Spent", each List.Max([spentAt]), type nullable date},{"Epic_Label", each List.Max([epic_label])}}),
+    #"Changed Type1" = Table.TransformColumnTypes(#"Grouped Rows",{{"Epic_Label", type text}})
+in
+    #"Changed Type1"
+=============actual spent fpr daily alerts===================================
+let
+    Source = Table.NestedJoin(no_spent, {"Issue URL"}, total_spent, {"webUrl"}, "total_spent", JoinKind.LeftOuter),
+    #"Expanded total_spent" = Table.ExpandTableColumn(Source, "total_spent", {"webUrl", "title", "iid", "Iteration", "Epic", "EpicURL", "state", "totalTimeSpent", "name", "Hrs Spent in Sprint", "Wt Spent in Sprint", "Latest Date Spent"}, {"total_spent.webUrl", "total_spent.title", "total_spent.iid", "total_spent.Iteration", "total_spent.Epic", "total_spent.EpicURL", "total_spent.state", "total_spent.totalTimeSpent", "total_spent.name", "total_spent.Hrs Spent in Sprint", "total_spent.Wt Spent in Sprint", "total_spent.Latest Date Spent"}),
+    #"Filtered Rows" = Table.SelectRows(#"Expanded total_spent", each ([total_spent.Hrs Spent in Sprint] = null))
+in
+    #"Filtered Rows"
+=========================daily spent========================================
+let
+    Source = Json.Document(File.Contents(fParameters("Parameters",1)&"\"&fParameters("Parameters",4))),
+    data = Source[data],
+    group = data[group],
+    timelogs = group[timelogs],
+    edges1 = timelogs[edges],
+    #"Converted to Table" = Table.FromList(edges1, Splitter.SplitByNothing(), null, null, ExtraValues.Ignore),
+    #"Expanded Column1" = Table.ExpandRecordColumn(#"Converted to Table", "Column1", {"node"}, {"node"}),
+    #"Expanded node" = Table.ExpandRecordColumn(#"Expanded Column1", "node", {"spentAt", "timeSpent", "user", "issue"}, {"spentAt", "timeSpent", "user", "issue"}),
+    #"Expanded user" = Table.ExpandRecordColumn(#"Expanded node", "user", {"name"}, {"name"}),
+    #"Expanded issue" = Table.ExpandRecordColumn(#"Expanded user", "issue", {"webUrl", "iid", "title", "weight", "iteration", "epic", "state", "totalTimeSpent", "labels"}, {"webUrl", "iid", "title", "weight", "iteration", "epic", "state", "totalTimeSpent", "labels"}),
+    #"Expanded iteration" = Table.ExpandRecordColumn(#"Expanded issue", "iteration", {"title"}, {"title.1"}),
+    #"Expanded epic" = Table.ExpandRecordColumn(#"Expanded iteration", "epic", {"title", "webUrl"}, {"title.2", "webUrl.1"}),
+    #"Expanded labels" = Table.ExpandRecordColumn(#"Expanded epic", "labels", {"edges"}, {"edges"}),
+    #"Expanded edges" = Table.ExpandListColumn(#"Expanded labels", "edges"),
+    #"Expanded edges1" = Table.ExpandRecordColumn(#"Expanded edges", "edges", {"node"}, {"node"}),
+    #"Expanded node1" = Table.ExpandRecordColumn(#"Expanded edges1", "node", {"title"}, {"title.3"}),
+        #"Renamed Columns" = Table.RenameColumns(#"Expanded node1",{{"title.3", "label"}}),
+    #"Sorted Rows" = Table.Sort(#"Renamed Columns",{{"label", Order.Descending}}),
+    #"Removed Duplicates" = Table.Distinct(#"Sorted Rows", {"totalTimeSpent", "state", "title.2", "title.1", "weight", "title", "iid", "webUrl", "name", "timeSpent", "spentAt"}),
+    #"Divided Column" = Table.TransformColumns(#"Removed Duplicates", {{"totalTimeSpent", each _ / 3600, type number}}),
+    #"Rounded Off" = Table.TransformColumns(#"Divided Column",{{"totalTimeSpent", each Number.Round(_, 1), type number}}),
+    #"Split Column by Positions" = Table.SplitColumn(#"Rounded Off", "spentAt", Splitter.SplitTextByPositions({0, 10}), {"spentAt.1", "spentAt.2"}),
+    #"Changed Type" = Table.TransformColumnTypes(#"Split Column by Positions",{{"spentAt.1", type date}, {"spentAt.2", type text}}),
+    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"spentAt.2"}),
+    #"Renamed Columns1" = Table.RenameColumns(#"Removed Columns",{{"spentAt.1", "spentAt"}}),
+    #"Divided Column2" = Table.TransformColumns(#"Renamed Columns1", {{"timeSpent", each _ / 3600, type number}}),
+    #"Rounded Off1" = Table.TransformColumns(#"Divided Column2",{{"timeSpent", each Number.Round(_, 1), type number}}),
+    #"Sorted Rows1" = Table.Sort(#"Rounded Off1",{{"webUrl", Order.Ascending}}),
+    #"Reversed Rows" = Table.ReverseRows(#"Sorted Rows1"),
+    #"Reordered Columns" = Table.ReorderColumns(#"Reversed Rows",{"webUrl", "title", "iid", "timeSpent", "spentAt", "name", "weight"}),
+    #"Renamed Columns2" = Table.RenameColumns(#"Reordered Columns",{{"timeSpent", "HrsSpent"}}),
+    #"Reordered Columns1" = Table.ReorderColumns(#"Renamed Columns2",{"webUrl", "title", "iid", "HrsSpent", "weight", "spentAt", "name"}),
+    #"Renamed Columns3" = Table.RenameColumns(#"Reordered Columns1",{{"title.1", "Iteration"}, {"title.2", "Epic"}, {"webUrl.1", "EpicURL"}})
+in
+    #"Renamed Columns3"
+=========================epics in sprint========================================
+let
+    Source = Excel.CurrentWorkbook(){[Name="gitlab_all"]}[Content],
+    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Milestone", type text}, {"Iteration", type text}, {"Epic", type text}, {"Project", type text}, {"Alpha", type text}, {"Issue ID", Int64.Type}, {"Title", type text}, {"Assignee", type text}, {"Created", type datetime}, {"Closed", type datetime}, {"Closed by", type text}, {"Time estimated (hours)", Int64.Type}, {"Time spent (hours)", Int64.Type}, {"Weight", Int64.Type}, {"Labels", type text}, {"State", type text}, {"Weight-averaged Weight", type number}, {"Issue URL", type text}, {"Epic URL", type text}}),
+    #"Merged Queries" = Table.NestedJoin(#"Changed Type", {"Epic URL"}, op_all, {"gitlab_hook"}, "op_all", JoinKind.LeftOuter),
+    #"Expanded op_all" = Table.ExpandTableColumn(#"Merged Queries", "op_all", {"id", "Parent", "Type", "Subject", "Status", "Version", "Category", "Estimated time", "Spent time", "gitlab_hook", "Description"}, {"op_all.id", "op_all.Parent", "op_all.Type", "op_all.Subject", "op_all.Status", "op_all.Version", "op_all.Category", "op_all.Estimated time", "op_all.Spent time", "op_all.gitlab_hook", "op_all.Description"}),
+    #"Filtered Rows" = Table.SelectRows(#"Expanded op_all", each ([State] = "opened") and ([Labels] <> "Anchor")),
+    #"Filtered Rows1" = Table.SelectRows(#"Filtered Rows", each not Text.Contains([Labels], "Anchor") and not Text.Contains([Labels], "Duplicate::No Dev")),
+    #"Filtered Rows2" = Table.SelectRows(#"Filtered Rows1", each ([Project] <> "sprint-staging") and ([Labels] <> "Stage::Merge Request"))
+in
+    #"Filtered Rows2"
